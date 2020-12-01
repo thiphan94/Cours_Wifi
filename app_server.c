@@ -27,30 +27,33 @@ int factorial(int n)
    return ( result );
 }
 
-void write_file(int sockfd){
+
+void write_file(FILE *fp, char *buffer){
   int n, res;
-  FILE *fp;
-  char *filename = "recv.txt";
-  char buffer[SIZE];
-  char change[SIZE];
-  fp = fopen(filename, "w");
-  while (1) {
-    n = recv(sockfd, buffer, SIZE, 0);
-    if (n <= 0){
-      break;
-      return;
-    }
-    printf("buffer= %s",buffer);
-    res = atoi(buffer);
-    res = factorial(res);
-    printf("res= %d",res);
-    // fprintf(fp, "%s", buffer);
-    fprintf(fp, "%d", res);
-    bzero(buffer, SIZE);
-  }
-  return;
+  res = atoi(buffer);
+  res = factorial(res);
+  fprintf(fp, "%d", res);
+  bzero(buffer, SIZE);
 }
 
+void send_file(FILE *fp, int sockfd){
+  int n;
+  char data[SIZE] = {0};
+
+  while(fgets(data, SIZE, fp) != NULL) {
+    if (send(sockfd, data, sizeof(data), 0) == -1) {
+      perror("Erreur");
+      exit(1);
+    }
+    bzero(data, SIZE);
+  }
+}
+
+char* GetFilenameFromRequest(char* request){
+
+	char *file_name = strchr(request, ' ');
+	return file_name + 1;
+}
 int main(){
 
 		// Phase déclarative
@@ -64,9 +67,11 @@ int main(){
 		struct sockaddr_in serverAddr, newAddr;
 
 		// Initialisation d'un Buffer
-		char buffer[1024];
+    char buffer[1024];
+		FILE *fp;
+  	char *filename = "reponse.txt";
 		socklen_t addr_size;
-
+    int num;
 		// Phase de Création
 		// Créer et construire la socket côté Server "sockfd"
 		// On a besoin de 3 arguments
@@ -106,12 +111,8 @@ int main(){
 
 		// Si le Server accepte la communication
 		// Il va faire appel à la fonction de lecture "read()"
-		// read(newSocket, buffer, 1024);
-		// printf("\n (Client) message : %s\n",buffer);
-
-		// int resultat = factorial(x);
-    //
-		// printf("\n factorial : %d\n",resultat);
+		read(newSocket, buffer, 1024);
+		printf("\n (Client) message : %s\n",buffer);
 
 		printf("\n Réponse du Server: \n");
 
@@ -119,8 +120,16 @@ int main(){
 		// fgets(buffer, 1024, stdin);
 		// // Ecrire le message en spécifiant le nombre d'octets dans le buffer "write()"
 		// write(newSocket, buffer, strlen(buffer));
+    fp = fopen(filename, "w");
+    write_file(fp, buffer);//calculer factoriel et stocker dans file reponse.txt
+    printf("filename %s\n",filename );
 
-    write_file(newSocket);
+    write(newSocket, "reponse.txt" , 12);
+    // send_file(fp, sockfd);
+	  // printf("[+]File data sent successfully.\n");
+    //
+		// printf("[+]Closing the connection.\n");
+
   	printf("[+]Ok, I am going to close the connection.\n");
   	printf("[+]SEE YOU.\n");
 return 0;

@@ -92,8 +92,21 @@ int main(){
 		printf("[+]Closing the connection.\n");
 	  // close(clientSocket);
 		// Le client va faire appel à la fonction de lecture "read()"
-		// read(clientSocket, buffer, 1024);
-		// printf("\n (Server) message : %s\n",buffer);
+		read(clientSocket, buffer, 1024);
+		printf("\n (Server) message : %s\n",buffer);
+
+		char c[1000];
+		FILE *fptr;
+    if ((fptr = fopen(buffer, "r")) == NULL) {
+        printf("Error! opening file");
+        // Program exits if file pointer returns NULL.
+        exit(1);
+    }
+
+    // reads text until newline is encountered
+    fscanf(fptr, "%[^\n]", c);
+    printf("Data from the file:\n%s", c);
+    fclose(fptr);
 
 
 	printf("[+]OK.\n");
